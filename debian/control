@@ -253,7 +253,7 @@ Package: kde-touchpad
 Architecture: any
 Depends: plasma-desktop, ${misc:Depends}
 Section: oldlibs
-Priority: extra
+Priority: optional
 Description: transitional dummy package
  This is a transitional dummy package. It can safely be removed.
 
@@ -283,3 +283,4 @@ Description: Tools and widgets for the desktop debug files
  This package is part of the KDE Plasma.
  .
  This package contains the debugging symbols.
+
