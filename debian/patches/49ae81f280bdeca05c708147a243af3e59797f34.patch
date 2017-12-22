@@ -1,0 +1,81 @@
+From 49ae81f280bdeca05c708147a243af3e59797f34 Mon Sep 17 00:00:00 2001
+From: Marco Martin <notmart@gmail.com>
+Date: Wed, 13 Dec 2017 15:46:23 +0100
+Subject: [PATCH] support for defining autostart apps in lnf packages
+
+Summary:
+meant to support layouts that want external apps such as lattedock
+or conky, it adds services (in the defaults file they're saved as
+the filename of the desktop file) in autostart and starts immediately
+the app as well.
+before applying a lnf, it removes from autostart anything the old
+package had and attempts to stop the apps
+
+Test Plan:
+tried to start/stop lattedock with the mechanism
+some fallback may be needed for non kde apps
+
+Reviewers: #plasma, davidedmundson
+
+Reviewed By: #plasma, davidedmundson
+
+Subscribers: ngraham, mvourlakos, apol, plasma-devel
+
+Tags: #plasma
+
+Differential Revision: https://phabricator.kde.org/D9288
+---
+ kcms/lookandfeel/kcm.cpp | 33 +++++++++++++++++++++++++++++++++
+ 1 file changed, 33 insertions(+)
+
+diff --git a/kcms/lookandfeel/kcm.cpp b/kcms/lookandfeel/kcm.cpp
+index 6ea3d050..325fec73 100644
+--- a/kcms/lookandfeel/kcm.cpp
++++ b/kcms/lookandfeel/kcm.cpp
+@@ -35,6 +35,8 @@
+ #include <QQuickView>
+ #include <KGlobalSettings>
+ #include <KIconLoader>
++#include <KAutostart>
++#include <KRun>
+ 
+ #include <QVBoxLayout>
+ #include <QPushButton>
+@@ -369,6 +371,37 @@ void KCMLookandFeel::save()
+                                                     QStringLiteral("reloadConfig"));
+             QDBusConnection::sessionBus().send(message);
+         }
++
++        //autostart
++        if (m_resetDefaultLayout) {
++            //remove all the old package to autostart
++            {
++                KSharedConfigPtr oldConf = KSharedConfig::openConfig(m_package.filePath("defaults"));
++                cg = KConfigGroup(oldConf, QStringLiteral("Autostart"));
++                const QStringList autostartServices = cg.readEntry("Services", QStringList());
++
++                for (const QString &serviceFile : autostartServices) {
++                    KService service(serviceFile + QStringLiteral(".desktop"));
++                    KAutostart as(serviceFile);
++                    as.setAutostarts(false);
++                    //FIXME: quite ugly way to stop things, and what about non KDE things?
++                    QProcess::startDetached(QStringLiteral("kquitapp5"), {QStringLiteral("--service"), service.property(QStringLiteral("X-DBUS-ServiceName")).toString()});
++                }
++            }
++            //Set all the stuff in the new lnf to autostart
++            {
++                cg = KConfigGroup(conf, QStringLiteral("Autostart"));
++                const QStringList autostartServices = cg.readEntry("Services", QStringList());
++
++                for (const QString &serviceFile : autostartServices) {
++                    KService service(serviceFile + QStringLiteral(".desktop"));
++                    KAutostart as(serviceFile);
++                    as.setCommand(service.exec());
++                    as.setAutostarts(true);
++                    KRun::runApplication(service, {}, nullptr);
++                }
++            }
++        }
+     }
+ 
+     //TODO: option to enable/disable apply? they don't seem required by UI design
