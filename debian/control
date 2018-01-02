@@ -73,6 +73,7 @@ Build-Depends: baloo-kf5-dev (>= 5.13~),
                xauth,
                xserver-xorg-dev,
                xserver-xorg-input-evdev-dev,
+               xserver-xorg-input-libinput-dev,
                xserver-xorg-input-synaptics-dev,
                xvfb
 Standards-Version: 3.9.6
