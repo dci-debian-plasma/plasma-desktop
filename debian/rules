@@ -2,6 +2,7 @@
 # -*- makefile -*-
 
 l10npkgs_firstversion_ok := 4:4.14.0-4~
+include /usr/share/pkg-kde-tools/qt-kde-team/2/l10n-packages.mk
 
 DEB_HOST_ARCH ?= $(shell dpkg-architecture -qDEB_HOST_ARCH)
 ifneq (,$(filter $(DEB_HOST_ARCH), armel armhf mips mipsel))
@@ -11,13 +12,16 @@ ifneq (,$(filter $(DEB_HOST_ARCH), armel armhf mips mipsel))
     export DEB_CXXFLAGS_MAINT_APPEND = -gstabs
 endif
 
-include /usr/share/pkg-kde-tools/qt-kde-team/3/debian-qt-kde.mk
-include /usr/share/pkg-kde-tools/qt-kde-team/2/l10n-packages.mk
+%:
+	dh $@ --with kf5,pkgkde_symbolshelper --buildsystem kf5
 
 override_dh_strip:
-	$(overridden_command) --dbgsym-migration='plasma-desktop-dbg (<= 4:5.5.5-1~~)'
+	dh_strip --dbgsym-migration='plasma-desktop-dbg (<= 4:5.5.5-1~~)'
 
 override_dh_auto_test:
 	# Disable dh_auto_test, fourth test never ends
 	# xvfb-run -a dh_auto_test
 	:
+
+override_dh_gencontrol: l10npkgs_firstversion_ok
+	dh_gencontrol
