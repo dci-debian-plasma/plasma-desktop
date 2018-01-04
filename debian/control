@@ -6,7 +6,7 @@ Uploaders: Maximiliano Curia <maxy@debian.org>
 Build-Depends: baloo-kf5-dev (>= 5.15~),
                breeze-dev (>= 4:5.11.4~),
                cmake (>= 2.8.12),
-               debhelper (>= 9),
+               debhelper (>= 11~),
                extra-cmake-modules (>= 1.8.0~),
                kded5-dev (>= 5.34.0~),
                kinit-dev,
